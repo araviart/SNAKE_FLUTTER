@@ -26,23 +26,36 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Le jeu snake'),
-      ),
-      body: _children[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: onTabTapped,
-        currentIndex: _currentIndex,
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.play_arrow),
-            label: 'Jouer',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
-            label: 'Classement',
-          ),
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              child: Text('Jouer'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SnakePage()),
+                );
+              },
+            ),
+            ElevatedButton(
+              child: Text('Classement'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ClassementPage()),
+                );
+              },
+            ),
+            ElevatedButton(
+              child: Text('Règles'),
+              onPressed: () {
+                // Remplacez ceci par la navigation vers votre page de règles
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

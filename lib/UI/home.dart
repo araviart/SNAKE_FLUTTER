@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_snake/ui/SnakePage.dart';
-import 'package:flutter_snake/ui/ClassementPage.dart';
+import 'package:flutter_snake/ui/snake_page.dart';
+import 'package:flutter_snake/ui/classement_page.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key}) : super(key: key);

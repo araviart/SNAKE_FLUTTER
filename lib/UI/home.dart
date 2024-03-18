@@ -26,7 +26,37 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: _children[_currentIndex],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            ElevatedButton(
+              child: Text('Jouer'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SnakePage()),
+                );
+              },
+            ),
+            ElevatedButton(
+              child: Text('Classement'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => ClassementPage()),
+                );
+              },
+            ),
+            ElevatedButton(
+              child: Text('Règles'),
+              onPressed: () {
+                // Remplacez ceci par la navigation vers votre page de règles
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

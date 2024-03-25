@@ -20,30 +20,30 @@ class GameModel {
   int score = 0;
   int currentDirection = DIRECTION_DROITE;
 
-
-  List<List<int>> grid = List.generate(NB_LIGNES, (i) => List.filled(NB_COLONNES, 0));
+  List<List<int>> grid =
+      List.generate(NB_LIGNES, (i) => List.filled(NB_COLONNES, 0));
 
   late FoodModel foodModel;
   late SnakeModel snakeModel;
 
-  GameModel(){
+  GameModel() {
     foodModel = FoodModel(gameModel: this);
     snakeModel = SnakeModel(gameModel: this);
   }
   // Add your class properties and methods here
 
-  void start(){
+  void start() {
     // on réinitialise la matrice
-    for(int i = 0; i < NB_LIGNES; i++){
-      for(int j = 0; j < NB_COLONNES; j++){
+    for (int i = 0; i < NB_LIGNES; i++) {
+      for (int j = 0; j < NB_COLONNES; j++) {
         grid[i][j] = 0;
       }
     }
     foodModel.createFood();
-    snakeModel.reset();
+    _displaySnakeBody();
   }
 
-  static List<int> getRandomCoordinates(){
+  static List<int> getRandomCoordinates() {
     Random random = Random();
     int randomX = random.nextInt(NB_COLONNES);
     int randomY = random.nextInt(NB_LIGNES);
@@ -51,26 +51,38 @@ class GameModel {
     return [randomX, randomY];
   }
 
-  void changeDirection(int newDirection){
+  void changeDirection(int newDirection) {
     currentDirection = newDirection;
     moveSnake();
   }
 
-  void moveSnake(){
+  void moveSnake() {
     snakeModel.moveSnake(currentDirection);
   }
 
-  bool isFood(int x, int y){
+  bool isFood(int x, int y) {
     return grid[y][x] == FOOD;
   }
 
-  bool isInGrid(int x, int y){
+  bool isInGrid(int x, int y) {
     return x >= 0 && x < NB_COLONNES && y >= 0 && y < NB_LIGNES;
   }
 
-  void increaseScore(){
+  void increaseScore() {
     score++;
   }
 
-  void eatFood(){}
+  void _displaySnakeBody() {
+    if (snakeModel.bodyPositions.isNotEmpty) {
+      for (var position in snakeModel.bodyPositions) {
+        int y = position[0];
+        int x = position[1];
+        grid[y][x] = GameModel.SNAKE_BODY;
+      }
+      var head = snakeModel.bodyPositions.first;
+      grid[head[0]][head[1]] = GameModel.SNAKE_HEAD;
+    }
+  }
+
+  void eatFood() {}
 }

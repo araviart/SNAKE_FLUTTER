@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_snake/UI/home.dart';
 import 'package:flutter_snake/models/game_model.dart';
 
 class SnakePage extends StatefulWidget {
@@ -18,21 +19,28 @@ class _SnakePageState extends State<SnakePage> {
   void initState() {
     // TODO: implement initState
     print("start");
-    gameModel.start();
+    startGame();
+  }
+
+  void createTimer() {
     timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
       setState(() {
-        gameModel.moveSnake();
+        if (gameModel.moveSnake()) {
+          timer.cancel();
+          showGameOverDialog(context);
+        }
       });
     });
   }
 
+  void startGame() {
+    gameModel.start();
+    resetTimer();
+  }
+
   void resetTimer() {
     timer?.cancel();
-    timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
-      setState(() {
-        gameModel.moveSnake();
-      });
-    });
+    createTimer();
   }
 
   @override
@@ -40,6 +48,36 @@ class _SnakePageState extends State<SnakePage> {
     // TODO: implement dispose
     timer?.cancel();
     super.dispose();
+  }
+
+  void showGameOverDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Game Over'),
+          content: Text('Your score: ' + gameModel.score.toString()),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Retour'),
+              onPressed: () {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => MyHomePage()),
+                  (route) => false,
+                );
+              },
+            ),
+            TextButton(
+              child: Text('Rejouer'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                startGame();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -84,19 +122,25 @@ class _SnakePageState extends State<SnakePage> {
                 ),
                 itemBuilder: (BuildContext context, int index) {
                   int y = index ~/ GameModel.NB_COLONNES;
-                  int x = index - ((index ~/ GameModel.NB_COLONNES) * GameModel.NB_COLONNES);
+                  int x = index -
+                      ((index ~/ GameModel.NB_COLONNES) *
+                          GameModel.NB_COLONNES);
 
                   Color cellColor;
 
                   switch (gameModel.grid[y][x]) {
                     case GameModel.SNAKE_HEAD:
-                      cellColor = Colors.yellow;
+                      cellColor = Colors.blue.shade900;
                       break;
                     case GameModel.SNAKE_BODY:
-                      cellColor = Colors.green;
+                      cellColor = Colors.blue.shade800;
                       break;
                     case GameModel.FOOD:
-                      print(index.toString() + " " + x.toString() + " " + y.toString());
+                      print(index.toString() +
+                          " " +
+                          x.toString() +
+                          " " +
+                          y.toString());
                       cellColor = Colors.red;
                       break;
                     default:
@@ -107,7 +151,7 @@ class _SnakePageState extends State<SnakePage> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: cellColor,
-                        border: Border.all(color: Colors.white),
+                        //border: Border.all(color: Colors.white),
                       ),
                       // TODO: Add your game cell here
                     ),

@@ -11,6 +11,9 @@ class FoodModel{
 
   void createFood(){
     List<int> coordinates = GameModel.getRandomCoordinates();
+    while (gameModel.grid[coordinates[1]][coordinates[0]] != 0){
+      coordinates = GameModel.getRandomCoordinates();
+    }
     gameModel.grid[coordinates[1]][coordinates[0]] = GameModel.FOOD;
   }
 }

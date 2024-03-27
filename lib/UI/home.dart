@@ -23,6 +23,7 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    Provider.of<Parametres>(context, listen: false).loadSettings();
     widget.database.then((database) {
       db = database;
       _showUsernameDialog();
@@ -69,13 +70,6 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _currentIndex = index;
     });
-  }
-
-  @override
-  void initState() {
-    // TODO: implement initState
-    Provider.of<Parametres>(context, listen: false).loadSettings();
-    super.initState();
   }
 
   @override

@@ -43,6 +43,7 @@ void main() async {
       create: (context) => Parametres(),
       child: MyApp(database: database),
     ),
+  );
 }
 
 class MyApp extends StatelessWidget {

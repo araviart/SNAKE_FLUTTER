@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_snake/models/game_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Parametres with ChangeNotifier{
+class Parametres with ChangeNotifier {
   String difficulte = 'Facile';
   bool mursPresents = false;
   bool nourritureIllimitee = false;
@@ -11,9 +11,8 @@ class Parametres with ChangeNotifier{
   bool get getMursPresents => mursPresents;
   bool get getNourritureIllimitee => nourritureIllimitee;
 
-
   loadSettings() async {
-    SharedPreferences prefs =await SharedPreferences.getInstance();
+    SharedPreferences prefs = await SharedPreferences.getInstance();
     difficulte = prefs.getString('difficulte') ?? 'Facile';
     mursPresents = prefs.getBool('mursPresents') ?? false;
     nourritureIllimitee = prefs.getBool('nourritureIllimitee') ?? false;
@@ -47,8 +46,8 @@ class Parametres with ChangeNotifier{
     notifyListeners();
   }
 
-   getCouleurCase({bool isPair = false}) {
-    switch(difficulte){
+  getCouleurCase({bool isPair = false}) {
+    switch (difficulte) {
       case 'Facile':
         return isPair ? Colors.lightGreen.shade600 : Colors.lightGreen.shade700;
       case 'Moyen':
@@ -57,6 +56,7 @@ class Parametres with ChangeNotifier{
         return isPair ? Colors.black87 : Colors.black;
     }
   }
+<<<<<<< Updated upstream
 
   getCouleurMur() {
     switch(difficulte){
@@ -69,3 +69,6 @@ class Parametres with ChangeNotifier{
     }
   }
 }
+=======
+}
+>>>>>>> Stashed changes

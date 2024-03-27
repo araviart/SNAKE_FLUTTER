@@ -16,6 +16,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
+  int _userId = 0;
   late List<Widget> _children; // Declare _children as late
   late Database db;
   String username = '';
@@ -29,7 +30,10 @@ class _MyHomePageState extends State<MyHomePage> {
       _showUsernameDialog();
       _children = [
         // Initialize _children here
-        SnakePage(),
+        SnakePage(
+          userId: _userId,
+          database: widget.database,
+        ),
         ClassementPage(database: widget.database),
       ];
     });
@@ -51,7 +55,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text('OK'),
               onPressed: () async {
                 Navigator.of(context).pop();
-                await db.insert(
+                _userId = await db.insert(
                   'users',
                   {'name': username},
                   conflictAlgorithm: ConflictAlgorithm.replace,
@@ -64,6 +68,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
+
   //  on met les pages ici après
 
   void onTabTapped(int index) {
@@ -85,7 +90,10 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SnakePage()),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SnakePage(userId: _userId, database: widget.database),
+                  ),
                 );
               },
             ),

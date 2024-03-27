@@ -53,6 +53,11 @@ class SnakeModel {
       return true;
     }
 
+    if (gameModel.isWall(newX, newY)) {
+      gameModel.isGameRunning = false;
+      return true;
+    }
+
     if (bodyPositions.isNotEmpty && bodyPositions.length > 1) {
       if (newX == bodyPositions[1][0] && newY == bodyPositions[1][1]) {
           gameModel.changeDirection(oldDirection);

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_snake/ui/snake_page.dart';
 import 'package:flutter_snake/ui/classement_page.dart';
+import 'package:sqflite_common/sqlite_api.dart';
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key}) : super(key: key);
+  final Future<Database> database;
+
+  const MyHomePage({Key? key, required this.database}) : super(key: key);
 
   @override
   _MyHomePageState createState() => _MyHomePageState();
@@ -11,10 +14,53 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
-  final List<Widget> _children = [
-    SnakePage(),
-    ClassementPage(),
-  ];
+  late List<Widget> _children; // Declare _children as late
+  late Database db;
+  String username = '';
+
+  @override
+  void initState() {
+    super.initState();
+    widget.database.then((database) {
+      db = database;
+      _showUsernameDialog();
+      _children = [
+        // Initialize _children here
+        SnakePage(),
+        ClassementPage(database: widget.database),
+      ];
+    });
+  }
+
+  void _showUsernameDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Entrez votre pseudonyme : '),
+          content: TextField(
+            onChanged: (value) {
+              username = value;
+            },
+          ),
+          actions: [
+            ElevatedButton(
+              child: Text('OK'),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await db.insert(
+                  'users',
+                  {'name': username},
+                  conflictAlgorithm: ConflictAlgorithm.replace,
+                );
+                setState(() {}); // Add this line
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   //  on met les pages ici après
 
   void onTabTapped(int index) {
@@ -30,6 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            Text('Bienvenue $username'),
             ElevatedButton(
               child: Text('Jouer'),
               onPressed: () {
@@ -44,7 +91,10 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => ClassementPage()),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        ClassementPage(database: widget.database),
+                  ),
                 );
               },
             ),

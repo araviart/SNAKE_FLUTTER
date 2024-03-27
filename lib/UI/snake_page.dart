@@ -211,6 +211,9 @@ class _SnakePageState extends State<SnakePage> {
                                 y.toString());
                             cellColor = Colors.red;
                             break;
+                          case GameModel.WALL:
+                            cellColor = Provider.of<Parametres>(context).getCouleurMur();
+                            break;
                           default:
                             cellColor = Provider.of<Parametres>(context).getCouleurCase(isPair: ((x+y) % 2) == 0);
                         }

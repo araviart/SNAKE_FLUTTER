@@ -16,6 +16,7 @@ class GameModel {
   static const int SNAKE_HEAD = 1;
   static const int SNAKE_BODY = 2;
   static const int FOOD = 3;
+  static const int WALL = 4;
 
   int score = 0;
   int currentDirection = DIRECTION_DROITE;
@@ -61,6 +62,17 @@ class GameModel {
     foodModel.createFood();
     snakeModel.reset();
     snakeModel.displaySnake();
+    if (mursPresents)
+      addWalls();
+  }
+
+  void addWalls() {
+    for (int i = 0; i < 10; i++) {
+      List<int> coordinates = getRandomCoordinates();
+      if (grid[coordinates[1]][coordinates[0]] == 0) {
+        grid[coordinates[1]][coordinates[0]] = WALL;
+      }
+    }
   }
 
   static List<int> getRandomCoordinates() {
@@ -93,6 +105,10 @@ class GameModel {
 
   bool isInGrid(int x, int y) {
     return x >= 0 && x < NB_COLONNES && y >= 0 && y < NB_LIGNES;
+  }
+
+  bool isWall(int x, int y) {
+    return grid[y][x] == WALL;
   }
 
   void increaseScore() {

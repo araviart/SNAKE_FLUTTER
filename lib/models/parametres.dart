@@ -57,4 +57,15 @@ class Parametres with ChangeNotifier{
         return isPair ? Colors.black87 : Colors.black;
     }
   }
+
+  getCouleurMur() {
+    switch(difficulte){
+      case 'Facile':
+        return Colors.grey.shade900;
+      case 'Moyen':
+        return Colors.black;
+      case 'Difficile':
+        return Colors.grey;
+    }
+  }
 }

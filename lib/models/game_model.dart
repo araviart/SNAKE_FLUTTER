@@ -16,6 +16,7 @@ class GameModel {
   static const int SNAKE_HEAD = 1;
   static const int SNAKE_BODY = 2;
   static const int FOOD = 3;
+  static const int WALL = 4;
 
   int score = 0;
   int currentDirection = DIRECTION_DROITE;
@@ -29,10 +30,23 @@ class GameModel {
 
   bool isGameRunning = false;
 
-  GameModel() {
+  String difficulte = 'Facile';
+  bool mursPresents = false;
+  bool nourritureIllimitee = false;
+
+  static final GameModel _singleton = GameModel._internal();
+
+  int curTick = 0;
+
+  GameModel._internal(){
     foodModel = FoodModel(gameModel: this);
     snakeModel = SnakeModel(gameModel: this);
   }
+
+  factory GameModel() {
+    return _singleton;
+  }
+  
   // Add your class properties and methods here
 
   void start() {
@@ -48,6 +62,17 @@ class GameModel {
     foodModel.createFood();
     snakeModel.reset();
     snakeModel.displaySnake();
+    if (mursPresents)
+      addWalls();
+  }
+
+  void addWalls() {
+    for (int i = 0; i < 10; i++) {
+      List<int> coordinates = getRandomCoordinates();
+      if (grid[coordinates[1]][coordinates[0]] == 0) {
+        grid[coordinates[1]][coordinates[0]] = WALL;
+      }
+    }
   }
 
   static List<int> getRandomCoordinates() {
@@ -65,6 +90,10 @@ class GameModel {
   }
 
   bool moveSnake() {
+    curTick++;
+    if (curTick%10 == 0 && nourritureIllimitee){
+      foodModel.createFood();
+    }
     if (isGameRunning)
       return snakeModel.moveSnake(currentDirection, oldDirection);
     return false;
@@ -78,7 +107,24 @@ class GameModel {
     return x >= 0 && x < NB_COLONNES && y >= 0 && y < NB_LIGNES;
   }
 
+  bool isWall(int x, int y) {
+    return grid[y][x] == WALL;
+  }
+
   void increaseScore() {
     score++;
+  }
+
+  int getTickRate() {
+    switch (difficulte) {
+      case 'Facile':
+        return 300;
+      case 'Moyen':
+        return 200;
+      case 'Difficile':
+        return 100;
+      default:
+        return 300;
+    }
   }
 }

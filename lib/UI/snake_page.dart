@@ -55,7 +55,7 @@ class _SnakePageState extends State<SnakePage> {
   }
 
   void createTimer() {
-    timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+    timer = Timer.periodic(Duration(milliseconds: gameModel.getTickRate()), (timer) {
       setState(() {
         if (gameModel.moveSnake()) {
           timer.cancel();
@@ -211,8 +211,11 @@ class _SnakePageState extends State<SnakePage> {
                                 y.toString());
                             cellColor = Colors.red;
                             break;
+                          case GameModel.WALL:
+                            cellColor = Provider.of<Parametres>(context).getCouleurMur();
+                            break;
                           default:
-                            cellColor = ((x+y) % 2) == 0 ? Provider.of<Parametres>(context, listen:false).getCouleurCase() :  Provider.of<Parametres>(context, listen:false).getCouleurCase(isPair: true);
+                            cellColor = Provider.of<Parametres>(context).getCouleurCase(isPair: ((x+y) % 2) == 0);
                         }
 
                         return GridTile(

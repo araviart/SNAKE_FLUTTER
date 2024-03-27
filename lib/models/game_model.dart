@@ -29,10 +29,23 @@ class GameModel {
 
   bool isGameRunning = false;
 
-  GameModel() {
+  String difficulte = 'Facile';
+  bool mursPresents = false;
+  bool nourritureIllimitee = false;
+
+  static final GameModel _singleton = GameModel._internal();
+
+  int curTick = 0;
+
+  GameModel._internal(){
     foodModel = FoodModel(gameModel: this);
     snakeModel = SnakeModel(gameModel: this);
   }
+
+  factory GameModel() {
+    return _singleton;
+  }
+  
   // Add your class properties and methods here
 
   void start() {
@@ -65,6 +78,10 @@ class GameModel {
   }
 
   bool moveSnake() {
+    curTick++;
+    if (curTick%10 == 0 && nourritureIllimitee){
+      foodModel.createFood();
+    }
     if (isGameRunning)
       return snakeModel.moveSnake(currentDirection, oldDirection);
     return false;
@@ -80,5 +97,18 @@ class GameModel {
 
   void increaseScore() {
     score++;
+  }
+
+  int getTickRate() {
+    switch (difficulte) {
+      case 'Facile':
+        return 300;
+      case 'Moyen':
+        return 200;
+      case 'Difficile':
+        return 100;
+      default:
+        return 300;
+    }
   }
 }

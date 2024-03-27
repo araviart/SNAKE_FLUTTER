@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_snake/UI/home.dart';
+import 'package:flutter_snake/models/parametres.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Parametres(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {

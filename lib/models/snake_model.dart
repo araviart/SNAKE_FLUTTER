@@ -49,6 +49,7 @@ class SnakeModel {
     }
 
     if (!gameModel.isInGrid(newX, newY)) {
+      gameModel.isGameRunning = false;
       return true;
     }
 
@@ -82,6 +83,7 @@ class SnakeModel {
         y = oldY;
         displaySnake();
         gameModel.grid[y][x] = GameModel.SNAKE_HEAD;
+        gameModel.isGameRunning = false;
         return true;
       }
     }

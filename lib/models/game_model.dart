@@ -27,6 +27,8 @@ class GameModel {
   late FoodModel foodModel;
   late SnakeModel snakeModel;
 
+  bool isGameRunning = false;
+
   GameModel() {
     foodModel = FoodModel(gameModel: this);
     snakeModel = SnakeModel(gameModel: this);
@@ -34,6 +36,7 @@ class GameModel {
   // Add your class properties and methods here
 
   void start() {
+    isGameRunning = true;
     score = 0;
     currentDirection = DIRECTION_DROITE;
     // on réinitialise la matrice
@@ -62,7 +65,9 @@ class GameModel {
   }
 
   bool moveSnake() {
-    return snakeModel.moveSnake(currentDirection, oldDirection);
+    if (isGameRunning)
+      return snakeModel.moveSnake(currentDirection, oldDirection);
+    return false;
   }
 
   bool isFood(int x, int y) {

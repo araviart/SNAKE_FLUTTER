@@ -19,12 +19,15 @@ class GameModel {
 
   int score = 0;
   int currentDirection = DIRECTION_DROITE;
+  int oldDirection = DIRECTION_DROITE;
 
   List<List<int>> grid =
       List.generate(NB_LIGNES, (i) => List.filled(NB_COLONNES, 0));
 
   late FoodModel foodModel;
   late SnakeModel snakeModel;
+
+  bool isGameRunning = false;
 
   GameModel() {
     foodModel = FoodModel(gameModel: this);
@@ -33,6 +36,9 @@ class GameModel {
   // Add your class properties and methods here
 
   void start() {
+    isGameRunning = true;
+    score = 0;
+    currentDirection = DIRECTION_DROITE;
     // on réinitialise la matrice
     for (int i = 0; i < NB_LIGNES; i++) {
       for (int j = 0; j < NB_COLONNES; j++) {
@@ -40,7 +46,8 @@ class GameModel {
       }
     }
     foodModel.createFood();
-    _displaySnakeBody();
+    snakeModel.reset();
+    snakeModel.displaySnake();
   }
 
   static List<int> getRandomCoordinates() {
@@ -52,12 +59,15 @@ class GameModel {
   }
 
   void changeDirection(int newDirection) {
+    oldDirection = currentDirection;
     currentDirection = newDirection;
     moveSnake();
   }
 
-  void moveSnake() {
-    snakeModel.moveSnake(currentDirection);
+  bool moveSnake() {
+    if (isGameRunning)
+      return snakeModel.moveSnake(currentDirection, oldDirection);
+    return false;
   }
 
   bool isFood(int x, int y) {
@@ -71,18 +81,4 @@ class GameModel {
   void increaseScore() {
     score++;
   }
-
-  void _displaySnakeBody() {
-    if (snakeModel.bodyPositions.isNotEmpty) {
-      for (var position in snakeModel.bodyPositions) {
-        int y = position[0];
-        int x = position[1];
-        grid[y][x] = GameModel.SNAKE_BODY;
-      }
-      var head = snakeModel.bodyPositions.first;
-      grid[head[0]][head[1]] = GameModel.SNAKE_HEAD;
-    }
-  }
-
-  void eatFood() {}
 }

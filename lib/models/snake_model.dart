@@ -7,17 +7,13 @@ class SnakeModel {
   GameModel gameModel;
   List<List<int>> bodyPositions = [];
 
-  SnakeModel({required this.gameModel, this.x = 0, this.y = 0});
+  SnakeModel({required this.gameModel, this.x = (GameModel.NB_COLONNES ~/ 2) - 3, this.y = GameModel.NB_LIGNES ~/ 2});
 
   void reset() {
-    x = GameModel.NB_COLONNES ~/ 2;
+    x = (GameModel.NB_COLONNES ~/ 2) - 3;
     y = GameModel.NB_LIGNES ~/ 2;
-    size = 2;
-    bodyPositions = [
-      [x, y],
-      [y, x - 1]
-    ];
-    displaySnake();
+    bodyPositions = [];
+    size = 1;
   }
 
   void displaySnake() {
@@ -25,15 +21,17 @@ class SnakeModel {
     gameModel.grid[y][x] = GameModel.SNAKE_HEAD;
     for (int i = 1; i < bodyPositions.length; i++) {
       gameModel.grid[bodyPositions[i][1]][bodyPositions[i][0]] =
-          GameModel.SNAKE_HEAD;
+          GameModel.SNAKE_BODY;
     }
     print("new snake head: x: $x, y: $y");
     print("new snake body: x: ${bodyPositions}");
   }
 
-  void moveSnake(int direction) {
+  bool moveSnake(int direction, int oldDirection) {
     int newX = x;
     int newY = y;
+    int oldX = x;
+    int oldY = y;
 
     switch (direction) {
       case GameModel.DIRECTION_HAUT:
@@ -51,7 +49,15 @@ class SnakeModel {
     }
 
     if (!gameModel.isInGrid(newX, newY)) {
-      return;
+      gameModel.isGameRunning = false;
+      return true;
+    }
+
+    if (bodyPositions.isNotEmpty && bodyPositions.length > 1) {
+      if (newX == bodyPositions[1][0] && newY == bodyPositions[1][1]) {
+          gameModel.changeDirection(oldDirection);
+          return false;
+      }
     }
 
     gameModel.grid[y][x] = 0;
@@ -68,7 +74,22 @@ class SnakeModel {
       gameModel.grid[lastBodyPart[1]][lastBodyPart[0]] = 0;
     }
 
+    // on regarde s'il y a une position présente plus qu'une fois dans la liste
+
+    for (var position in bodyPositions) {
+      if (position[0] == x && position[1] == y) {
+        // je veux reset la position qu'on vient de mettre
+        x = oldX;
+        y = oldY;
+        displaySnake();
+        gameModel.grid[y][x] = GameModel.SNAKE_HEAD;
+        gameModel.isGameRunning = false;
+        return true;
+      }
+    }
+
     displaySnake();
+    return false;
   }
 
   void growSnake() {

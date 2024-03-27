@@ -1,7 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_snake/UI/home.dart';
+import 'package:flutter_snake/UI/page_parametres.dart';
 import 'package:flutter_snake/models/game_model.dart';
+import 'package:flutter_snake/models/parametres.dart';
+import 'package:provider/provider.dart';
 
 class SnakePage extends StatefulWidget {
   const SnakePage({Key? key}) : super(key: key);
@@ -13,26 +17,62 @@ class SnakePage extends StatefulWidget {
 class _SnakePageState extends State<SnakePage> {
   GameModel gameModel = GameModel();
   Timer? timer;
+  bool isPaused = false;
+  int timerText = -1;
 
   @override
   void initState() {
     // TODO: implement initState
-    print("start");
-    gameModel.start();
-    timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
+    //print("start");
+    //startGame();
+  }
+
+  void pauseGame(){
+    timer?.cancel();
+    isPaused = true;
+  }
+
+  void resumeGame(){
+    createTimer();
+    isPaused = false;
+  }
+
+  // permet d'afficher 3, 2, 1, GO
+  void createTimerText(){
+    timerText = 5;
+    Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        gameModel.moveSnake();
+        if(timerText > -1){
+          timerText--;
+        if (timerText == 0){
+          startGame();
+        }
+        }else{
+          timer.cancel();
+        }
       });
     });
   }
 
-  void resetTimer() {
-    timer?.cancel();
+  void createTimer() {
     timer = Timer.periodic(Duration(milliseconds: 500), (timer) {
       setState(() {
-        gameModel.moveSnake();
+        if (gameModel.moveSnake()) {
+          timer.cancel();
+          showGameOverDialog(context);
+        }
       });
     });
+  }
+
+  void startGame() {
+    gameModel.start();
+    resetTimer();
+  }
+
+  void resetTimer() {
+    timer?.cancel();
+    createTimer();
   }
 
   @override
@@ -40,6 +80,34 @@ class _SnakePageState extends State<SnakePage> {
     // TODO: implement dispose
     timer?.cancel();
     super.dispose();
+  }
+
+  void showGameOverDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Game Over'),
+          content: Text('Your score: ' + gameModel.score.toString()),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Retour'),
+              onPressed: () {
+                // je veux fermer la boite de dialogue
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Rejouer'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                startGame();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -59,14 +127,49 @@ class _SnakePageState extends State<SnakePage> {
             onSelected: (String result) {
               // TODO: Implement your menu actions here
             },
+            onOpened: () {
+              if (timer != null)
+                timer!.cancel();
+            },
+            onCanceled: () {
+              if (!isPaused && gameModel.isGameRunning){
+                createTimer();
+              }
+            },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              const PopupMenuItem<String>(
-                value: 'Pause',
-                child: Text('Pause'),
+              PopupMenuItem<String>(
+                value: isPaused ? "Reprendre" : 'Pause',
+                onTap: () => {
+                  setState(() {
+                    if (isPaused){
+                      resumeGame();
+                    }else{
+                      pauseGame();
+                    }
+                  })
+                },
+                child: Text(isPaused ? "Reprendre" : 'Pause'),
               ),
-              const PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Replay',
-                child: Text('Replay'),
+                onTap: () {
+                  timer!.cancel();
+                  createTimerText();
+                },
+                child: Text('Rejouer'),
+              ),
+               PopupMenuItem<String>(
+                value: 'Paramètres',
+                onTap: () {
+                  setState(() {
+                    pauseGame();
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PageParametres()),
+                    );
+                  });
+                },
+                child: Text('Paramètres'),
               ),
             ],
           ),
@@ -75,49 +178,85 @@ class _SnakePageState extends State<SnakePage> {
       body: Column(
         children: <Widget>[
           Expanded(
-            flex: 7,
-            child: Container(
-              color: Colors.green,
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 10, // Change this number as per your need
-                ),
-                itemBuilder: (BuildContext context, int index) {
-                  int y = index ~/ GameModel.NB_COLONNES;
-                  int x = index - ((index ~/ GameModel.NB_COLONNES) * GameModel.NB_COLONNES);
-
-                  Color cellColor;
-
-                  switch (gameModel.grid[y][x]) {
-                    case GameModel.SNAKE_HEAD:
-                      cellColor = Colors.yellow;
-                      break;
-                    case GameModel.SNAKE_BODY:
-                      cellColor = Colors.green;
-                      break;
-                    case GameModel.FOOD:
-                      print(index.toString() + " " + x.toString() + " " + y.toString());
-                      cellColor = Colors.red;
-                      break;
-                    default:
-                      cellColor = Colors.lightGreen;
-                  }
-
-                  return GridTile(
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: cellColor,
-                        border: Border.all(color: Colors.white),
+              flex: 7,
+              child: Stack(
+                children: <Widget>[
+                  Container(
+                    color: Colors.transparent,
+                    child: GridView.builder(
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount:
+                            10, // Change this number as per your need
                       ),
-                      // TODO: Add your game cell here
+                      itemBuilder: (BuildContext context, int index) {
+                        int y = index ~/ GameModel.NB_COLONNES;
+                        int x = index -
+                            ((index ~/ GameModel.NB_COLONNES) *
+                                GameModel.NB_COLONNES);
+
+                        Color cellColor;
+
+                        switch (gameModel.grid[y][x]) {
+                          case GameModel.SNAKE_HEAD:
+                            cellColor = Colors.blue.shade900;
+                            break;
+                          case GameModel.SNAKE_BODY:
+                            cellColor = Colors.blue.shade800;
+                            break;
+                          case GameModel.FOOD:
+                            print(index.toString() +
+                                " " +
+                                x.toString() +
+                                " " +
+                                y.toString());
+                            cellColor = Colors.red;
+                            break;
+                          default:
+                            cellColor = ((x+y) % 2) == 0 ? Provider.of<Parametres>(context, listen:false).getCouleurCase() :  Provider.of<Parametres>(context, listen:false).getCouleurCase(isPair: true);
+                        }
+
+                        return GridTile(
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: cellColor,
+                              //border: Border.all(color: Colors.white),
+                            ),
+                            // TODO: Add your game cell here
+                          ),
+                        );
+                      },
+                      itemCount: GameModel
+                          .NB_CASES, // Change this number as per your need
                     ),
-                  );
-                },
-                itemCount:
-                    GameModel.NB_CASES, // Change this number as per your need
-              ),
-            ),
-          ),
+                  ),
+                  Positioned(
+                      child: Expanded(
+                          child: 
+                          (!gameModel.isGameRunning && timerText == -1) ? 
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Meilleur score: ',
+                              style:
+                                  TextStyle(fontSize: 25, color: Colors.white)),
+                          ElevatedButton(onPressed: () {
+                            createTimerText();
+                          },child: Text("Lancer une partie")),
+                        ],
+                      ) 
+                      : timerText > -1 ? 
+                      Center(
+                        child:Text(timerText == 4 ? "3" : timerText == 3 ? "2" : timerText == 2 ? "1" : timerText == 1 ? "GO!" : "",
+                        style:  TextStyle(fontSize: 25, color: Colors.white),  )  ,
+                      )
+                      : Container(),
+                      ),
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      bottom: 0)
+                ],
+              )),
           Expanded(
             flex: 2,
             child: Row(

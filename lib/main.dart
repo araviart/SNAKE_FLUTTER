@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_snake/UI/home.dart';
+import 'package:flutter_snake/models/parametres.dart';
+import 'package:provider/provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -36,7 +38,11 @@ void main() async {
     },
     version: 2,
   );
-  runApp(MyApp(database: database));
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => Parametres(),
+      child: MyApp(database: database),
+    ),
 }
 
 class MyApp extends StatelessWidget {

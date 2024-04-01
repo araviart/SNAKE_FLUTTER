@@ -3,6 +3,7 @@ import 'package:flutter_snake/models/parametres.dart';
 import 'package:flutter_snake/ui/snake_page.dart';
 import 'package:flutter_snake/ui/classement_page.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_snake/ui/regle_snake.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -16,6 +17,7 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _currentIndex = 0;
+  int _userId = 0;
   late List<Widget> _children; // Declare _children as late
   late Database db;
   String username = '';
@@ -29,7 +31,10 @@ class _MyHomePageState extends State<MyHomePage> {
       _showUsernameDialog();
       _children = [
         // Initialize _children here
-        SnakePage(),
+        SnakePage(
+          userId: _userId,
+          database: widget.database,
+        ),
         ClassementPage(database: widget.database),
       ];
     });
@@ -51,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
               child: Text('OK'),
               onPressed: () async {
                 Navigator.of(context).pop();
-                await db.insert(
+                _userId = await db.insert(
                   'users',
                   {'name': username},
                   conflictAlgorithm: ConflictAlgorithm.replace,
@@ -64,6 +69,7 @@ class _MyHomePageState extends State<MyHomePage> {
       },
     );
   }
+
   //  on met les pages ici après
 
   void onTabTapped(int index) {
@@ -85,7 +91,10 @@ class _MyHomePageState extends State<MyHomePage> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => SnakePage()),
+                  MaterialPageRoute(
+                    builder: (context) =>
+                        SnakePage(userId: _userId, database: widget.database),
+                  ),
                 );
               },
             ),
@@ -104,6 +113,12 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               child: Text('Règles'),
               onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RegleSnakePage(),
+                  ),
+                );
                 // Remplacez ceci par la navigation vers votre page de règles
               },
             ),

@@ -6,9 +6,14 @@ import 'package:flutter_snake/UI/page_parametres.dart';
 import 'package:flutter_snake/models/game_model.dart';
 import 'package:flutter_snake/models/parametres.dart';
 import 'package:provider/provider.dart';
+import 'package:sqflite/sqflite.dart';
 
 class SnakePage extends StatefulWidget {
-  const SnakePage({Key? key}) : super(key: key);
+  final int userId;
+  final Future<Database> database;
+
+  const SnakePage({Key? key, required this.userId, required this.database})
+      : super(key: key);
 
   @override
   State<SnakePage> createState() => _SnakePageState();
@@ -18,36 +23,61 @@ class _SnakePageState extends State<SnakePage> {
   GameModel gameModel = GameModel();
   Timer? timer;
   bool isPaused = false;
+  late Database db;
   int timerText = -1;
 
   @override
   void initState() {
     // TODO: implement initState
+
     //print("start");
     //startGame();
   }
 
-  void pauseGame(){
+  void pauseGame() {
     timer?.cancel();
     isPaused = true;
   }
 
-  void resumeGame(){
+  void resumeGame() {
     createTimer();
     isPaused = false;
   }
 
+  Future<void> updateRanking() async {
+    final Database db = await widget.database;
+    int score = gameModel.score;
+    List<Map> list = await db
+        .rawQuery('SELECT * FROM classement WHERE userId = ?', [widget.userId]);
+    if (list.isNotEmpty) {
+      if (list[0]['score'] < score) {
+        await db.update(
+          'classement',
+          {'score': score},
+          where: 'userId = ?',
+          whereArgs: [widget.userId],
+        );
+      }
+    } else {
+      await db.insert(
+        'classement',
+        {'userId': widget.userId, 'score': score},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+  }
+
   // permet d'afficher 3, 2, 1, GO
-  void createTimerText(){
+  void createTimerText() {
     timerText = 5;
     Timer.periodic(Duration(seconds: 1), (timer) {
       setState(() {
-        if(timerText > -1){
+        if (timerText > -1) {
           timerText--;
-        if (timerText == 0){
-          startGame();
-        }
-        }else{
+          if (timerText == 0) {
+            startGame();
+          }
+        } else {
           timer.cancel();
         }
       });
@@ -55,7 +85,8 @@ class _SnakePageState extends State<SnakePage> {
   }
 
   void createTimer() {
-    timer = Timer.periodic(Duration(milliseconds: gameModel.getTickRate()), (timer) {
+    timer = Timer.periodic(Duration(milliseconds: gameModel.getTickRate()),
+        (timer) {
       setState(() {
         if (gameModel.moveSnake()) {
           timer.cancel();
@@ -82,32 +113,46 @@ class _SnakePageState extends State<SnakePage> {
     super.dispose();
   }
 
-  void showGameOverDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Game Over'),
-          content: Text('Your score: ' + gameModel.score.toString()),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Retour'),
-              onPressed: () {
-                // je veux fermer la boite de dialogue
-                Navigator.of(context).pop();
-              },
-            ),
-            TextButton(
-              child: Text('Rejouer'),
-              onPressed: () {
-                Navigator.of(context).pop();
-                startGame();
-              },
-            ),
-          ],
-        );
-      },
+  Future<void> insertScore() async {
+    int score = gameModel.score;
+    final Database db = await widget.database;
+
+    await db.insert(
+      'scores',
+      {'userId': widget.userId, 'score': score},
+      conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  void showGameOverDialog(BuildContext context) {
+    insertScore().then((_) {
+      updateRanking();
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Game Over'),
+            content: Text('Your score: ' + gameModel.score.toString()),
+            actions: <Widget>[
+              TextButton(
+                child: Text('Retour'),
+                onPressed: () {
+                  // je veux fermer la boite de dialogue
+                  Navigator.of(context).pop();
+                },
+              ),
+              TextButton(
+                child: Text('Rejouer'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  startGame();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    });
   }
 
   @override
@@ -128,11 +173,10 @@ class _SnakePageState extends State<SnakePage> {
               // TODO: Implement your menu actions here
             },
             onOpened: () {
-              if (timer != null)
-                timer!.cancel();
+              if (timer != null) timer!.cancel();
             },
             onCanceled: () {
-              if (!isPaused && gameModel.isGameRunning){
+              if (!isPaused && gameModel.isGameRunning) {
                 createTimer();
               }
             },
@@ -141,9 +185,9 @@ class _SnakePageState extends State<SnakePage> {
                 value: isPaused ? "Reprendre" : 'Pause',
                 onTap: () => {
                   setState(() {
-                    if (isPaused){
+                    if (isPaused) {
                       resumeGame();
-                    }else{
+                    } else {
                       pauseGame();
                     }
                   })
@@ -158,7 +202,7 @@ class _SnakePageState extends State<SnakePage> {
                 },
                 child: Text('Rejouer'),
               ),
-               PopupMenuItem<String>(
+              PopupMenuItem<String>(
                 value: 'Paramètres',
                 onTap: () {
                   setState(() {
@@ -212,10 +256,17 @@ class _SnakePageState extends State<SnakePage> {
                             cellColor = Colors.red;
                             break;
                           case GameModel.WALL:
-                            cellColor = Provider.of<Parametres>(context).getCouleurMur();
+                            cellColor = Provider.of<Parametres>(context)
+                                .getCouleurMur();
                             break;
                           default:
-                            cellColor = Provider.of<Parametres>(context).getCouleurCase(isPair: ((x+y) % 2) == 0);
+                            cellColor = ((x + y) % 2) == 0
+                                ? Provider.of<Parametres>(context,
+                                        listen: false)
+                                    .getCouleurCase()
+                                : Provider.of<Parametres>(context,
+                                        listen: false)
+                                    .getCouleurCase(isPair: true);
                         }
 
                         return GridTile(
@@ -234,25 +285,37 @@ class _SnakePageState extends State<SnakePage> {
                   ),
                   Positioned(
                       child: Expanded(
-                          child: 
-                          (!gameModel.isGameRunning && timerText == -1) ? 
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Meilleur score: ',
-                              style:
-                                  TextStyle(fontSize: 25, color: Colors.white)),
-                          ElevatedButton(onPressed: () {
-                            createTimerText();
-                          },child: Text("Lancer une partie")),
-                        ],
-                      ) 
-                      : timerText > -1 ? 
-                      Center(
-                        child:Text(timerText == 4 ? "3" : timerText == 3 ? "2" : timerText == 2 ? "1" : timerText == 1 ? "GO!" : "",
-                        style:  TextStyle(fontSize: 25, color: Colors.white),  )  ,
-                      )
-                      : Container(),
+                        child: (!gameModel.isGameRunning && timerText == -1)
+                            ? Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text('Meilleur score: ',
+                                      style: TextStyle(
+                                          fontSize: 25, color: Colors.white)),
+                                  ElevatedButton(
+                                      onPressed: () {
+                                        createTimerText();
+                                      },
+                                      child: Text("Lancer une partie")),
+                                ],
+                              )
+                            : timerText > -1
+                                ? Center(
+                                    child: Text(
+                                      timerText == 4
+                                          ? "3"
+                                          : timerText == 3
+                                              ? "2"
+                                              : timerText == 2
+                                                  ? "1"
+                                                  : timerText == 1
+                                                      ? "GO!"
+                                                      : "",
+                                      style: TextStyle(
+                                          fontSize: 25, color: Colors.white),
+                                    ),
+                                  )
+                                : Container(),
                       ),
                       top: 0,
                       left: 0,

@@ -44,6 +44,29 @@ class _SnakePageState extends State<SnakePage> {
     isPaused = false;
   }
 
+  Future<void> updateRanking() async {
+    final Database db = await widget.database;
+    int score = gameModel.score;
+    List<Map> list = await db
+        .rawQuery('SELECT * FROM classement WHERE userId = ?', [widget.userId]);
+    if (list.isNotEmpty) {
+      if (list[0]['score'] < score) {
+        await db.update(
+          'classement',
+          {'score': score},
+          where: 'userId = ?',
+          whereArgs: [widget.userId],
+        );
+      }
+    } else {
+      await db.insert(
+        'classement',
+        {'userId': widget.userId, 'score': score},
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+  }
+
   // permet d'afficher 3, 2, 1, GO
   void createTimerText() {
     timerText = 5;
@@ -103,6 +126,7 @@ class _SnakePageState extends State<SnakePage> {
 
   void showGameOverDialog(BuildContext context) {
     insertScore().then((_) {
+      updateRanking();
       showDialog(
         context: context,
         builder: (BuildContext context) {

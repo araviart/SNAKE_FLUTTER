@@ -3,6 +3,7 @@ import 'package:flutter_snake/models/parametres.dart';
 import 'package:flutter_snake/ui/snake_page.dart';
 import 'package:flutter_snake/ui/classement_page.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_snake/ui/regle_snake.dart';
 import 'package:sqflite_common/sqlite_api.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -112,6 +113,12 @@ class _MyHomePageState extends State<MyHomePage> {
             ElevatedButton(
               child: Text('Règles'),
               onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => RegleSnakePage(),
+                  ),
+                );
                 // Remplacez ceci par la navigation vers votre page de règles
               },
             ),

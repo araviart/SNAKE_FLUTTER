@@ -18,7 +18,7 @@ void main() async {
         'CREATE TABLE scores(id INTEGER PRIMARY KEY, userId INTEGER, score INTEGER, FOREIGN KEY(userId) REFERENCES users(id))',
       );
       await db.execute(
-        'CREATE TABLE classement(id INTEGER PRIMARY KEY, userId INTEGER, score INTEGER, FOREIGN KEY(userId) REFERENCES users(id), FOREIGN KEY(score) REFERENCES scores(id))',
+        'CREATE TABLE classement(id INTEGER PRIMARY KEY, userId INTEGER, score INTEGER, difficulte TEXT, FOREIGN KEY(userId) REFERENCES users(id), FOREIGN KEY(score) REFERENCES scores(id))',
       );
       print('Tables created successfully.'); // Debug message
     },

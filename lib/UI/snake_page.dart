@@ -53,7 +53,7 @@ class _SnakePageState extends State<SnakePage> {
       if (list[0]['score'] < score) {
         await db.update(
           'classement',
-          {'score': score},
+          {'score': score, 'difficulte': GameModel().difficulte},
           where: 'userId = ?',
           whereArgs: [widget.userId],
         );
@@ -124,34 +124,51 @@ class _SnakePageState extends State<SnakePage> {
     );
   }
 
+  Future<int> getBestScore() async {
+    final Database db = await widget.database;
+    List<Map> list = await db.rawQuery(
+        'SELECT MAX(score) as bestScore FROM scores WHERE userId = ?',
+        [widget.userId]);
+    if (list.isNotEmpty && list[0]['bestScore'] != null) {
+      return list[0]['bestScore'];
+    } else {
+      return 0;
+    }
+  }
+
   void showGameOverDialog(BuildContext context) {
     insertScore().then((_) {
       updateRanking();
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Game Over'),
-            content: Text('Your score: ' + gameModel.score.toString()),
-            actions: <Widget>[
-              TextButton(
-                child: Text('Retour'),
-                onPressed: () {
-                  // je veux fermer la boite de dialogue
-                  Navigator.of(context).pop();
-                },
+      getBestScore().then((bestScore) {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text('Game Over'),
+              content: Column(
+                children: [
+                  Text('Votre score: ' + gameModel.score.toString()),
+                ],
               ),
-              TextButton(
-                child: Text('Rejouer'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  startGame();
-                },
-              ),
-            ],
-          );
-        },
-      );
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Retour'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                ),
+                TextButton(
+                  child: Text('Rejouer'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    startGame();
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      });
     });
   }
 

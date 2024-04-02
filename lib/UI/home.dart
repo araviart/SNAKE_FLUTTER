@@ -30,7 +30,6 @@ class _MyHomePageState extends State<MyHomePage> {
       db = database;
       _showUsernameDialog();
       _children = [
-        // Initialize _children here
         SnakePage(
           userId: _userId,
           database: widget.database,

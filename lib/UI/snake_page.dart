@@ -48,20 +48,22 @@ class _SnakePageState extends State<SnakePage> {
     final Database db = await widget.database;
     int score = gameModel.score;
     List<Map> list = await db
-        .rawQuery('SELECT * FROM classement WHERE userId = ?', [widget.userId]);
+        .rawQuery('SELECT * FROM classement WHERE userId = ? AND difficulte = ? AND murs = ? AND nourritureIllimite = ?',
+            [widget.userId, GameModel().difficulte, GameModel().mursPresents ? 1 : 0, GameModel().nourritureIllimitee ? 1 : 0]);
+
     if (list.isNotEmpty) {
       if (list[0]['score'] < score) {
         await db.update(
           'classement',
-          {'score': score, 'difficulte': GameModel().difficulte},
-          where: 'userId = ?',
-          whereArgs: [widget.userId],
+          {'score': score, 'difficulte': GameModel().difficulte, 'murs': GameModel().mursPresents ? 1 : 0, 'nourritureIllimite': GameModel().nourritureIllimitee ? 1 : 0},
+          where: 'userId = ? AND difficulte = ? AND murs = ? AND nourritureIllimite = ?',
+          whereArgs: [widget.userId, GameModel().difficulte, GameModel().mursPresents ? 1 : 0, GameModel().nourritureIllimitee ? 1 : 0],
         );
       }
     } else {
       await db.insert(
         'classement',
-        {'userId': widget.userId, 'score': score},
+        {'userId': widget.userId, 'score': score, 'difficulte': GameModel().difficulte, 'murs': GameModel().mursPresents ? 1 : 0, 'nourritureIllimite': GameModel().nourritureIllimitee ? 1 : 0},
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
@@ -117,18 +119,30 @@ class _SnakePageState extends State<SnakePage> {
     int score = gameModel.score;
     final Database db = await widget.database;
 
+    // print la difficulté, les murs et la nourriture illimitée
+    print('Difficulte: ' + gameModel.difficulte + ', Murs: ' + gameModel.mursPresents.toString() + ', Nourriture illimitee: ' + gameModel.nourritureIllimitee.toString());
+
     await db.insert(
       'scores',
-      {'userId': widget.userId, 'score': score},
+      {'userId': widget.userId, 'score': score, 'difficulte': gameModel.difficulte, 'murs': gameModel.mursPresents ? 1 : 0, 'nourritureIllimite': gameModel.nourritureIllimitee ? 1 : 0},
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+
+    // on va get tous les scores et les print
+    
+    // on va tout suppr de classement et score
+
+    List<Map> list = await db.rawQuery('SELECT * FROM classement');
+    for (var row in list) {
+      print('UserId: ${row['userId']}, Score: ${row['score']}, Difficulte: ${row['difficulte']}, Murs: ${row['murs']}, Nourriture illimite: ${row['nourritureIllimite']}');
+    }
   }
 
   Future<int> getBestScore() async {
     final Database db = await widget.database;
     List<Map> list = await db.rawQuery(
-        'SELECT MAX(score) as bestScore FROM scores WHERE userId = ?',
-        [widget.userId]);
+        'SELECT MAX(score) as bestScore FROM scores WHERE userId = ? AND difficulte = ? AND murs = ? AND nourritureIllimite = ?',
+        [widget.userId, gameModel.difficulte, gameModel.mursPresents ? 1 : 0, gameModel.nourritureIllimitee ? 1 : 0]);
     if (list.isNotEmpty && list[0]['bestScore'] != null) {
       return list[0]['bestScore'];
     } else {
@@ -141,33 +155,37 @@ class _SnakePageState extends State<SnakePage> {
       updateRanking();
       getBestScore().then((bestScore) {
         showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Game Over'),
-              content: Column(
-                children: [
-                  Text('Votre score: ' + gameModel.score.toString()),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  child: Text('Retour'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                TextButton(
-                  child: Text('Rejouer'),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    startGame();
-                  },
-                ),
-              ],
-            );
-          },
-        );
+  context: context,
+  builder: (BuildContext context) {
+    return Center(
+      child: SingleChildScrollView(
+        child: AlertDialog(
+          title: Text('Game Over'),
+          content: Wrap(
+            children: [
+              Text('Votre score: ' + gameModel.score.toString()),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Retour'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Rejouer'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                startGame();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  },
+);
       });
     });
   }

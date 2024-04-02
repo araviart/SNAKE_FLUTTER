@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_snake/models/game_model.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Parametres with ChangeNotifier {
@@ -13,14 +14,18 @@ class Parametres with ChangeNotifier {
   loadSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     difficulte = prefs.getString('difficulte') ?? 'Facile';
+    GameModel().difficulte = difficulte;
     mursPresents = prefs.getBool('mursPresents') ?? false;
+    GameModel().mursPresents = mursPresents;
     nourritureIllimitee = prefs.getBool('nourritureIllimitee') ?? false;
+    GameModel().nourritureIllimitee = nourritureIllimitee;
     notifyListeners();
   }
 
   setDifficulte(String value) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setString('difficulte', value);
+    GameModel().difficulte = value;
     difficulte = value;
     notifyListeners();
   }
@@ -29,6 +34,7 @@ class Parametres with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('mursPresents', value);
     mursPresents = value;
+    GameModel().mursPresents = value;
     notifyListeners();
   }
 
@@ -36,6 +42,7 @@ class Parametres with ChangeNotifier {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('nourritureIllimitee', value);
     nourritureIllimitee = value;
+    GameModel().nourritureIllimitee = value;
     notifyListeners();
   }
 

@@ -14,4 +14,9 @@ Jeu Snake développé en Flutter/Dart utilisant sqflite pour la gestion des scor
 
   - Consulter le classement de tout les joueurs du snake pour chaque modes de jeu et difficulté (avant c'était pas associé à la difficulté)
 
+## Lancer le projet
 
+```
+flutter pub get
+flutter run
+```
